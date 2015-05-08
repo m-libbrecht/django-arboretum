@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+{{ form.media.css }}
+{% endblock %}
+
+
+
+{% block title %}
+    Demo
+{% endblock %}
+
+{% block content %}
+<form action="." method="POST">{% csrf_token %}
+  {{ form.as_p }}
+
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ form.media.js }}
+{% endblock %}

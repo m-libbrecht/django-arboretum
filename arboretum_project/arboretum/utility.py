@@ -1,0 +1,183 @@
+import json
+
+import six
+
+import django
+from django.http import HttpResponse
+from django.db.models import Q
+from django.db import transaction
+
+
+def get_tree_from_queryset(queryset, on_create_node=None, max_level=None):
+    """
+    Return tree data that is suitable for Fancy Tree.
+    The queryset must be sorted by 'tree_id' and 'left' fields.
+    """
+    pk_attname = queryset.model._meta.pk.attname
+
+    def serialize_id(pk):
+        if isinstance(pk,           six.integer_types + six.string_types):
+            return pk
+        else:
+            # Nb. special case for uuid field
+            return str(pk)
+
+    # Result tree
+    tree = []
+
+    # Dict of all nodes; used for building the tree
+    # - key is node id
+    # - value is node info (label, id)
+    node_dict = dict()
+
+    # The lowest level of the tree; used for building the tree
+    # - Initial value is None; set later
+    # - For the whole tree this is 0, for a subtree this is higher
+    min_level = None
+
+    for instance in queryset:
+        if min_level is None:
+            min_level = instance.level
+
+        pk = getattr(instance, pk_attname)
+
+        node_info = dict(
+            title=six.text_type(instance),
+            key=serialize_id(pk)
+        )
+
+
+        if on_create_node:
+            on_create_node(instance, node_info)
+
+        if max_level is not None and not instance.is_leaf_node():
+            # If there is a maximum level and this node has children, then initially set property 'lazy' to true.
+            node_info['lazy'] = True
+
+        if instance.level == min_level:
+            # This is the lowest level. Skip finding a parent.
+            # Add node to the tree
+            tree.append(node_info)
+        else:
+            # NB: Use parent.id instead of parent_id for consistent values for uuid
+            parent_id = instance.parent.id
+
+            # Get parent from node dict
+            parent_info = node_dict.get(parent_id)
+
+            # Check for corner case: parent is deleted.
+            if parent_info:
+                if not 'children' in parent_info:
+                    parent_info['children'] = []
+
+                # Add node to the tree
+                parent_info['children'].append(node_info)
+
+                # If there is a maximum level, then reset property 'lazy' for parent
+                if max_level is not None:
+                    parent_info['lazy'] = False
+
+
+        # Update node dict
+        node_dict[pk] = node_info
+
+    return tree
+
+
+def get_tree_queryset(model, node_id=None, selected_node_id=None, max_level=None, include_root=True):
+    if node_id:
+        node = model.objects.get(id=node_id)
+        max_level = node.level + 1
+        qs = node.get_descendants().filter(level__lte=max_level)
+    else:
+        qs = model._default_manager.all()
+
+        if isinstance(max_level, int):
+            max_level_filter = Q(level__lte=max_level)
+
+            selected_node = None
+            if selected_node_id:
+                selected_node_qs = model._default_manager.filter(pk=selected_node_id)
+
+                if selected_node_qs.exists():
+                    selected_node = selected_node_qs.get()
+
+            if not (selected_node and selected_node.level > max_level):
+                qs = qs.filter(max_level_filter)
+            else:
+                qs_parents = selected_node.get_ancestors(include_self=True)
+                parents_filter = Q(parent__in=qs_parents)
+                qs = qs.filter(max_level_filter | parents_filter)
+
+        if not include_root:
+            qs = qs.exclude(level=0)
+
+    return qs.order_by('tree_id', 'lft')
+
+
+def get_javascript_value(value):
+    """
+    Get javascript value for python value.
+
+    >>> get_javascript_value(True)
+    true
+    >>> get_javascript_value(10)
+    10
+    """
+    if isinstance(value, bool):
+        if value:
+            return 'true'
+        else:
+            return 'false'
+    else:
+        return json.dumps(value)
+
+
+def get_lowcase_bool(value):
+    """
+    Transform Python False, True into false, true
+
+    >>> get_javascript_value(True)
+    true
+    >>> get_javascript_value(10)
+    10
+    """
+    if isinstance(value, bool):
+        if value:
+            return 'true'
+        else:
+            return 'false'
+    else:
+        return  value
+
+
+
+class JsonResponse(HttpResponse):
+    def __init__(self, data, status=None):
+        super(JsonResponse, self).__init__(
+            json.dumps(data),
+            'application/json',
+            status
+        )
+
+
+def get_short_django_version():
+    """
+    Get first two numbers of Django version.
+    E.g. (1, 5)
+    """
+    return django.VERSION[0:2]
+
+
+def django_atomic():
+    if get_short_django_version() >= (1, 6):
+        return transaction.atomic
+    else:
+        return transaction.commit_on_success
+
+
+def get_model_name(model):
+    if get_short_django_version() >= (1, 6):
+        return model._meta.model_name
+    else:
+        return model._meta.module_name

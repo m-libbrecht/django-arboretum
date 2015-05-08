@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+{% load bootstrap3 %}
+
+<head>
+
+
+    <title>
+        {% block bootstrap3_title %}
+            django-bootstrap3 template title
+        {% endblock %}
+    </title>
+
+    {% bootstrap_css %}
+
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+
+
+</head>
+
+
+{% block bootstrap3_content %}
+    <div class="container">
+        <h1>{% block title %}(no title){% endblock %}</h1>
+
+
+        {% block extra_head %}
+        {% endblock %}
+
+
+        <p>
+            <a href="{% url 'home' %}">home</a>
+
+        </p>
+
+        {% bootstrap_messages %}
+
+
+        {% block content %}
+            (no content)
+        {% endblock %}
+
+
+        {% block extra_scripts %}
+        {% endblock %}
+
+
+    </div>
+
+{% endblock %}
+
+
+</html>
+

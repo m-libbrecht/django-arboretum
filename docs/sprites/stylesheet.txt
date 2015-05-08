@@ -1,0 +1,77 @@
+.sprite {
+    background-image: url(spritesheet.png);
+    background-repeat: no-repeat;
+    display: block;
+}
+
+.sprite-cut {
+    width: 16px;
+    height: 16px;
+    background-position: -5px -5px;
+}
+
+.sprite-door {
+    width: 16px;
+    height: 16px;
+    background-position: -31px -5px;
+}
+
+.sprite-help {
+    width: 16px;
+    height: 16px;
+    background-position: -57px -5px;
+}
+
+.sprite-page_white_add {
+    width: 16px;
+    height: 16px;
+    background-position: -5px -31px;
+}
+
+.sprite-page_white_copy {
+    width: 16px;
+    height: 16px;
+    background-position: -31px -31px;
+}
+
+.sprite-page_white_delete {
+    width: 16px;
+    height: 16px;
+    background-position: -57px -31px;
+}
+
+.sprite-page_white_edit {
+    width: 16px;
+    height: 16px;
+    background-position: -5px -57px;
+}
+
+.sprite-page_white_paste {
+    width: 16px;
+    height: 16px;
+    background-position: -31px -57px;
+}
+
+.sprite-rebuild {
+    width: 16px;
+    height: 16px;
+    background-position: -57px -57px;
+}
+
+.sprite-selectall {
+    width: 16px;
+    height: 16px;
+    background-position: -83px -5px;
+}
+
+.sprite-selectinvert {
+    width: 16px;
+    height: 16px;
+    background-position: -83px -31px;
+}
+
+.sprite-selectnone {
+    width: 16px;
+    height: 16px;
+    background-position: -83px -57px;
+}
