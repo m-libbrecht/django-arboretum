@@ -1,7 +1,0 @@
-Django==1.6.5
-MySQL-python==1.2.5
-mysql-connector-python==2.0.3
-mysql-utilities==1.5.3
-vboxapi==1.0
-virtualenv==1.11.4
-wsgiref==0.1.2
